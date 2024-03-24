@@ -29,6 +29,10 @@ const fileDb = {
 
     return product;
   },
+  async clearMessages() {
+    data = [];
+    await this.save();
+  },
   async save() {
     await fs.writeFile(fileName, JSON.stringify(data, null, 2));
   },
