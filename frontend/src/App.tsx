@@ -19,7 +19,9 @@ function App() {
       setLoading(true);
       const { data: messagesData } = await axiosApi.get<Message[]>('/messages');
       setMessages(messagesData);
-      lastMsgDate = messagesData[messagesData.length - 1].datetime;
+      if (messagesData.length > 0) {
+        lastMsgDate = messagesData[messagesData.length - 1].datetime;
+      }
       setLoading(false);
     } catch (error) {
       console.log(error);
@@ -44,23 +46,20 @@ function App() {
   };
 
   useEffect(() => {
-    const run = async () => {
-      void fetchMessages();
-      setInterval(async () => {
-        try {
-          const { data: newMessagesData } = await axiosApi.get<Message[]>(
-            '/messages?datetime=' + lastMsgDate
-          );
-          if (newMessagesData.length > 0) {
-            lastMsgDate = newMessagesData[newMessagesData.length - 1].datetime;
-            setMessages((prevState) => [...prevState, ...newMessagesData]);
-          }
-        } catch (error) {
-          console.log(error);
+    void fetchMessages();
+    setInterval(async () => {
+      try {
+        const { data: newMessagesData } = await axiosApi.get<Message[]>(
+          '/messages?datetime=' + lastMsgDate
+        );
+        if (newMessagesData.length > 0) {
+          lastMsgDate = newMessagesData[newMessagesData.length - 1].datetime;
+          setMessages((prevState) => [...prevState, ...newMessagesData]);
         }
-      }, 3000);
-    };
-    void run();
+      } catch (error) {
+        console.log(error);
+      }
+    }, 3000);
   }, [fetchMessages]);
 
   const handleFormChange = (
@@ -73,7 +72,10 @@ function App() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    void postMessage();
+    await postMessage();
+    if (messages.length === 0) {
+      void fetchMessages();
+    }
     clearInputs();
   };
 
