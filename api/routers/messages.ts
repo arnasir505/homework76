@@ -34,7 +34,7 @@ messagesRouter.post('/', async (req, res) => {
     message: req.body.message,
   };
   await fileDb.addItem(messageData);
-  return res.send('OK');
+  return res.send('Message has been sent');
 });
 
 export default messagesRouter;

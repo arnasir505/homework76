@@ -48,13 +48,12 @@ function App() {
       void fetchMessages();
       setInterval(async () => {
         try {
-          console.log(lastMsgDate);
           const { data: newMessagesData } = await axiosApi.get<Message[]>(
             '/messages?datetime=' + lastMsgDate
           );
-          lastMsgDate = newMessagesData[newMessagesData.length - 1].datetime;
           if (newMessagesData.length > 0) {
-            setMessages(prevState => [...prevState, ...newMessagesData]);
+            lastMsgDate = newMessagesData[newMessagesData.length - 1].datetime;
+            setMessages((prevState) => [...prevState, ...newMessagesData]);
           }
         } catch (error) {
           console.log(error);
@@ -78,7 +77,7 @@ function App() {
     clearInputs();
   };
 
-  let content = <CircularProgress />;
+  let content = <CircularProgress size={'3rem'} sx={{ mt: 2 }} />;
 
   if (messages.length > 0 && !loading) {
     content = (
@@ -95,7 +94,7 @@ function App() {
     );
   } else if (messages.length === 0 && !loading) {
     content = (
-      <Typography variant='h4' textAlign={'center'}>
+      <Typography variant='h5' textAlign={'center'} mt={3}>
         No messages yet. Send first message!
       </Typography>
     );
@@ -106,14 +105,14 @@ function App() {
       <Grid
         container
         justifyContent={'center'}
-        sx={{ maxHeight: '600px', overflow: 'auto' }}
+        sx={{ maxHeight: '600px', overflow: 'auto', py: 2 }}
       >
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6} textAlign={'center'}>
           {content}
         </Grid>
       </Grid>
       <Grid container marginTop={3} justifyContent={'center'}>
-        <Grid item xs={12}>
+        <Grid item xs={12} md={6}>
           <MessageForm
             author={userMessage.author}
             message={userMessage.message}
