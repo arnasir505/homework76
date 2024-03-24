@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ClientMessage, Message } from './types';
 import MessageForm from './components/MessageForm/MessageForm';
 import MessageCard from './components/MessageCard/MessageCard';
@@ -11,47 +11,58 @@ function App() {
     author: '',
     message: '',
   });
-  const [lastMsgDate, setLastMsgDate] = useState('');
   const [loading, setLoading] = useState(false);
-  let interval: number;
+  let lastMsgDate: string;
 
   const fetchMessages = useCallback(async () => {
     try {
       setLoading(true);
       const { data: messagesData } = await axiosApi.get<Message[]>('/messages');
       setMessages(messagesData);
-      setLastMsgDate(messagesData[messagesData.length - 1].datetime);
+      lastMsgDate = messagesData[messagesData.length - 1].datetime;
       setLoading(false);
     } catch (error) {
       console.log(error);
     }
   }, []);
 
+  const postMessage = useCallback(async () => {
+    try {
+      if (userMessage.author !== '' && userMessage.message !== '') {
+        await axiosApi.post('/messages', userMessage);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, [userMessage]);
+
+  const clearInputs = () => {
+    setUserMessage({
+      author: '',
+      message: '',
+    });
+  };
+
   useEffect(() => {
-    void fetchMessages();
+    const run = async () => {
+      void fetchMessages();
+      setInterval(async () => {
+        try {
+          console.log(lastMsgDate);
+          const { data: newMessagesData } = await axiosApi.get<Message[]>(
+            '/messages?datetime=' + lastMsgDate
+          );
+          lastMsgDate = newMessagesData[newMessagesData.length - 1].datetime;
+          if (newMessagesData.length > 0) {
+            setMessages(prevState => [...prevState, ...newMessagesData]);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }, 3000);
+    };
+    void run();
   }, [fetchMessages]);
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const response = await fetch(url);
-  //     const messagesData = await response.json();
-  //     setLastMsgDate(messagesData[messagesData.length - 1].datetime);
-  //     setMessages(messagesData);
-  //   };
-  //   fetchData();
-  //   setTimeout(() => {
-  //     scrollToLastMsg();
-  //   }, 2000);
-  // }, []);
-
-  // useEffect(() => {
-  //   interval = setInterval(async () => {
-  //     const response = await fetch(`${url}/?datetime=${lastMsgDate}`);
-  //     const newMessagesData = await response.json();
-  //     setMessages(newMessagesData);
-  //     scrollToLastMsg();
-  //   }, 1000);
-  // }, []);
 
   const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -62,14 +73,9 @@ function App() {
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
-    // e.preventDefault();
-  };
-
-  const ref = useRef<HTMLDivElement>(null);
-
-  const scrollToLastMsg = () => {
-    const lastChildEl = ref.current?.lastElementChild;
-    lastChildEl?.scrollIntoView({ behavior: 'smooth' });
+    e.preventDefault();
+    void postMessage();
+    clearInputs();
   };
 
   let content = <CircularProgress />;

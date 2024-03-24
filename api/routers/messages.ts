@@ -8,7 +8,7 @@ messagesRouter.get('/', async (req, res) => {
   const queryDate = req.query.datetime as string;
   const date = new Date(queryDate);
 
-  if (queryDate) {
+  if (queryDate === '') {
     if (isNaN(date.getDate())) {
       return res.status(400).send({ error: 'Invalid date' });
     }
