@@ -37,9 +37,4 @@ messagesRouter.post('/', async (req, res) => {
   return res.send('OK');
 });
 
-messagesRouter.get('/clear', async (_req, res) => {
-  await fileDb.clearMessages();
-  return res.send('Cleared messsages');
-});
-
 export default messagesRouter;
